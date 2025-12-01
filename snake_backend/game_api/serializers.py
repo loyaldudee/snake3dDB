@@ -8,9 +8,13 @@ class PlayerSerializer(serializers.ModelSerializer):
         read_only_fields = ['player_code', 'created_at']
 
 class ScoreSerializer(serializers.ModelSerializer):
-    # We want to show the player's name in the score list, not just their ID
-    player_name = serializers.CharField(source='player.username', read_only=True)
+    # RENAME FIELDS TO MATCH UNITY:
+    # Unity expects 'name', 'score', and 'date'
+    name = serializers.CharField(source='player.username', read_only=True)
+    score = serializers.IntegerField(source='points', read_only=True)
+    date = serializers.DateTimeField(source='played_at', format="%Y-%m-%d", read_only=True)
 
     class Meta:
         model = Score
-        fields = ['player_name', 'points', 'played_at']
+        # We list the "new" names here
+        fields = ['name', 'score', 'date']
