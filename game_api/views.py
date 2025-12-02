@@ -7,8 +7,8 @@ from .serializers import PlayerSerializer, ScoreSerializer
 # --- 1. REGISTER PLAYER ---
 @api_view(['POST'])
 def register_player(request):
-    username = request.data.get('name') 
-    
+    username = request.data.get('name')
+
     if not username:
         return Response({"error": "Name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -31,7 +31,6 @@ def submit_score(request):
         return Response({"error": "Invalid player code"}, status=status.HTTP_404_NOT_FOUND)
 
     Score.objects.create(player=player, points=points)
-    
     return Response({"message": "Score submitted successfully"}, status=status.HTTP_201_CREATED)
 
 # --- 3. GET GLOBAL LEADERBOARD ---
@@ -39,4 +38,16 @@ def submit_score(request):
 def get_leaderboard(request):
     top_scores = Score.objects.select_related('player').order_by('-points')[:10]
     serializer = ScoreSerializer(top_scores, many=True)
+    return Response(serializer.data)
+
+# --- 4. GET PLAYER HISTORY ---
+@api_view(['GET'])
+def get_history(request, player_code):
+    try:
+        player = Player.objects.get(player_code=player_code)
+    except Player.DoesNotExist:
+        return Response({"error": "Invalid player code"}, status=status.HTTP_404_NOT_FOUND)
+
+    scores = Score.objects.filter(player=player).order_by('-points')
+    serializer = ScoreSerializer(scores, many=True)
     return Response(serializer.data)
